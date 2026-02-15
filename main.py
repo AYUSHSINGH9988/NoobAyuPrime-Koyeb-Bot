@@ -1,16 +1,29 @@
+import os
 import telebot
 import requests
 
-# --- Apni Details Yaha Dalein ---
-BOT_TOKEN = 'YAHAN_APNA_TELEGRAM_BOT_TOKEN_DALEIN'
-KOYEB_API_KEY = 'droo03gphbsabo2uq36dafi97qtkv72zslbe1cnwj6henenu8i5j8b0giagnepqs'
-SERVICE_ID = '5f48e7b9-e008-4975-a1e6-6d6d9faa613b'
+# Dashboard se variables uthayega
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+KOYEB_API_KEY = os.getenv('KOYEB_API_KEY')
+SERVICE_ID = os.getenv('SERVICE_ID')
+
+# --- DEBUGGING LOGS ---
+if not BOT_TOKEN:
+    print("❌ ERROR: BOT_TOKEN dashboard se nahi mil raha!")
+else:
+    print(f"✅ BOT_TOKEN mila (Length: {len(BOT_TOKEN)})")
+    if ":" not in BOT_TOKEN:
+        print("❌ ERROR: Token mein ':' missing hai! Dashboard check karein.")
+
+if not KOYEB_API_KEY: print("❌ ERROR: KOYEB_API_KEY missing hai!")
+if not SERVICE_ID: print("❌ ERROR: SERVICE_ID missing hai!")
+# ----------------------
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Bot ready hai! Naya commit karne ke baad /redeploy likhein.")
+    bot.reply_to(message, "Redeployer Bot Active! 🚀")
 
 @bot.message_handler(commands=['redeploy'])
 def redeploy_service(message):
@@ -18,22 +31,19 @@ def redeploy_service(message):
         'Authorization': f'Bearer {KOYEB_API_KEY}',
         'Content-Type': 'application/json',
     }
-    
     url = f'https://app.koyeb.com/v1/services/{SERVICE_ID}/redeploy'
-    
-    bot.reply_to(message, "🔄 Koyeb ko redeploy signal bhej raha hu...")
-    
+    bot.reply_to(message, "🔄 Redeploying...")
     try:
-        # 'use_cache': False karne se fresh build hota hai
         response = requests.post(url, headers=headers, json={"use_cache": False})
-        
         if response.status_code in [200, 201]:
-            bot.reply_to(message, "✅ Success! Koyeb ne naya build start kar diya hai. Dashboard check karein.")
+            bot.reply_to(message, "✅ Success! Naya build start ho gaya.")
         else:
-            bot.reply_to(message, f"❌ Kuch gadbad hui!\nStatus Code: {response.status_code}\nResponse: {response.text}")
-            
+            bot.reply_to(message, f"❌ Error: {response.status_code}")
     except Exception as e:
         bot.reply_to(message, f"⚠️ Error: {str(e)}")
 
-print("Redeployer Bot chal raha hai...")
+print("Bot is starting...")
 bot.polling()
+
+    
+    
